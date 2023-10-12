@@ -4,15 +4,25 @@ A lightweight blockchain implementation written in Python, only for demonstratio
 
 ## Installation
 
-There are numerous ways to setup Python projects projects. In this project, [pyenv] and [pipenv] are utilized to manage the Python version and the dependencies. If these tools are not installed yet, [homebrew] may be used to install them.
+No dependencies are required to run the project. You may run the project in a virtual environment, but it is not necessary. Depending on your OS and global Python version, you may want to use [pyenv] to install a specific Python version.
+
+```bash
+
+## Usage
+
+Run the blockchain:
+
+```bash
+python main.py
+```
+
+<!-- ## Installation
+
+There are numerous ways to setup Python projects. In this project, [pyenv] and [pipenv] are utilized to manage the Python version and the dependencies. If these tools are not installed yet, [homebrew] may be used to install them.
 
 ```bash
 brew install pyenv pipenv
 ```
-
-[pyenv]: https://github.com/pyenv/pyenv
-[pipenv]: https://pypi.org/project/pipenv
-[homebrew]: https://brew.sh
 
 Any Python version can be installed with pyenv. To install Python 3.8.0 and set it as the local version:
 
@@ -41,4 +51,8 @@ Start the blockchain and run:
 
 ```bash
 pipenv run python main.py
-```
+``` -->
+
+[pyenv]: https://github.com/pyenv/pyenv
+[pipenv]: https://pypi.org/project/pipenv
+[homebrew]: https://brew.sh
