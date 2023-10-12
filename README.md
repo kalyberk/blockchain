@@ -6,11 +6,9 @@ A lightweight blockchain implementation written in Python, only for demonstratio
 
 No dependencies are required to run the project. You may run the project in a virtual environment, but it is not necessary. Depending on your OS and global Python version, you may want to use [pyenv] to install a specific Python version.
 
-```bash
-
 ## Usage
 
-Run the blockchain:
+Run:
 
 ```bash
 python main.py
