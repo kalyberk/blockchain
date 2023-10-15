@@ -1,6 +1,6 @@
 # Lightweight blockchain implementation
 
-A lightweight blockchain implementation written in Python, only for demonstration purposes. It is not UTXO-based like Bitcoin, but account-based like Ethereum. A simple PoW (Proof-of-Work) mechanism secures the network by preventing Sybil attacks. To ensure the consensus between nodes, the longest chain rule is used. The blockchain data is not stored persistently, but only in memory. Elliptic curve cryptography is used for the keypair generation and the digital signature signing and verification.
+A lightweight blockchain implementation written in Python, only for demonstration purposes. It is not UTXO-based like Bitcoin, but account-based like Ethereum. A simple Proof-of-Work mechanism secures the network by preventing Sybil attacks. To ensure the consensus between nodes, the longest chain rule is used. The blockchain data is not stored persistently, but only in memory. Elliptic curve cryptography is used for the keypair generation and the digital signature signing and verification.
 
 ## Installation
 
@@ -8,7 +8,13 @@ No dependencies are required to run the project. You may run the project in a vi
 
 ## Usage
 
-Run:
+Start running a node (port is optional):
+
+```bash
+python node.py --port 5001
+```
+
+Run the interactive main script to interact with the node:
 
 ```bash
 python main.py

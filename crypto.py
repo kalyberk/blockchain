@@ -88,6 +88,12 @@ class Crypto:
         return xr, yr
 
     @staticmethod
+    def recover_public_key(signature, data):
+        a, b, p, n = curve["a"], curve["b"], curve["p"], curve["n"]
+        ## TODO: implement public key recovery from signature
+        pass
+
+    @staticmethod
     def keypair(mnemonic=None):
         if mnemonic is None:
             mnemonic = Crypto.random_mnemonic()

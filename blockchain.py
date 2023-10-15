@@ -1,13 +1,13 @@
+import datetime
 import hashlib
 from block import Block
 from account import Account
 from txn import Txn
-from multiprocessing import Manager
 
 
 class Blockchain:
     def __init__(self):
-        self.blocks = Manager().list()
+        self.blocks = []
         self.difficulty = 3  # number of leading zeros in the block hash
         self.block_size = 5  # number of txns per block
 
@@ -15,13 +15,11 @@ class Blockchain:
         if len(self.blocks) > 0:
             return
 
-        satoshi = Account()
         data = "Dallama block"
-        genesis_txn = Txn(self.zero_address(), satoshi.address, 1000, "First txn")
-        txns = [genesis_txn]
+        txns = []
         prev_hash = "0" * 64
         nonce, hash = self.pow(0, prev_hash, data, txns)
-        block = Block(0, prev_hash, data, nonce, txns, hash)
+        block = Block(0, prev_hash, data, nonce, txns, hash, datetime.datetime.now())
         self.blocks.append(block)
 
     def hash(self, index, prev_hash, data, nonce, txns):
@@ -44,7 +42,9 @@ class Blockchain:
         index = last_block.index + 1
         prev_hash = last_block.hash
         nonce, hash = self.pow(index, prev_hash, data, txns)
-        block = Block(index, prev_hash, data, nonce, txns, hash)
+        block = Block(
+            index, prev_hash, data, nonce, txns, hash, datetime.datetime.now()
+        )
         self.blocks.append(block)
         return block
 

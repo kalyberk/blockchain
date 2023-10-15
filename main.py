@@ -1,53 +1,36 @@
 from account import Account
-from node import Node
-from blockchain import Blockchain
-from multiprocessing import Process, Manager
-import time
+import multiprocessing
+from multiprocessing.connection import Client
 
 
 def main():
-    with Manager() as manager:
-        blockchain = Blockchain()
-        blockchain.genesis()
-        print(f"New blockchain: {blockchain}")
-        print(f"Genesis block: {blockchain.blocks[0]}")
-        print(f"Genesis txn: {blockchain.blocks[0].txns[0]}")
+    input("Creating accounts for Alice and Bob. Press Enter to continue...\n")
+    alice = Account()
+    print(f"Alice's address: {alice.address}\n")
+    bob = Account()
+    print(f"Bob's address: {bob.address}\n")
 
-        node = Node(blockchain)
-        node_process = Process(target=node.run, args=(), daemon=True)
-        node_process.start()
+    input("Alice is sending 10 coins to Bob. Press Enter to continue...")
+    txn1 = alice.transfer(
+        input("Enter Alice's private key: "),
+        bob.address,
+        10,
+        "Alice to Bob",
+    )
+    print(f"Alice signed. Transaction signature: {txn1.signature}")
 
-        alice = Account()
-        print(f"Alice's address: {alice.address}")
-        bob = Account()
-        print(f"Bob's address: {bob.address}")
+    try:
+        conn = Client(("localhost", int(input("Enter port of the node: "))))
+        conn.send(("enqueue_txn", txn1))
+    except:
+        print("Connection error")
 
-        # Send some coins to Alice from Satoshi
-        # Get satoshi's account
-        satoshi = Account()
+    # print(f"Alice's balance: {node.state[alice.address]}")
+    # print(f"Bob's balance: {node.state[bob.address]}")
 
-        print("Alice wants to send coins to Bob")
-        txn1 = alice.transfer(
-            alice.private_key,
-            bob.address,
-            10,
-            "Alice to Bob",
-        )
-        print(f"Alice signed. Transaction signature: {txn1.signature}")
-
-        # Publish transaction to the network via node
-        node.enqueue_txn(txn1)
-
-        # Wait for transaction to be mined
-        wait_txn1_process = Process(target=node.wait_for_txn, args=(txn1.signature,))
-        wait_txn1_process.start()
-        wait_txn1_process.join()
-
-        # Check balances
-        print(f"Alice's balance: {node.state[alice.address]}")
-        print(f"Bob's balance: {node.state[bob.address]}")
-
-        node_process.join()
+    input("Press Enter to exit...")
+    conn.send(("disconnect",))
+    conn.close()
 
 
 if __name__ == "__main__":

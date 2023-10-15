@@ -5,17 +5,19 @@ from txn import Txn
 
 
 class Account:
-    def __init__(self):
-        (
-            self.private_key,  # store it only for demo purposes (to prevent inputting it every time)
-            self.public_key,
-            self.address,
-        ) = self.generate()
+    def __init__(self, private_key=None):
+        if private_key is None:
+            private_key, _, address = self.generate()
+        else:
+            public_key = Crypto.generate_public_key(private_key)
+            address = self.generate_address(public_key)
+
+        print(f"Account created with private key: {private_key}")
+        self.address = address
 
     def generate(self):
         private_key, public_key = Crypto.keypair()
         address = self.generate_address(public_key)
-        # return public_key, address
         return private_key, public_key, address
 
     @staticmethod

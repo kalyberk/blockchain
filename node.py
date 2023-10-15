@@ -1,15 +1,19 @@
+import argparse
 import time
-import datetime
-from multiprocessing import Manager
+import multiprocessing
+import threading
+from multiprocessing.connection import Listener
+from datetime import datetime, timedelta
+from crypto import Crypto
 from blockchain import Blockchain
 
 
 class Node:
     def __init__(self, blockchain):
         self.blockchain = blockchain
-        self.mempool = Manager().list()  # list of transactions
-        self.state = Manager().dict()  # world state of account balances
-        self.peers = Manager().list()  # list of peers
+        self.mempool = []  # list of transactions
+        self.state = {}  # world state of account balances
+        self.peers = []  # list of peers
         self.set_state()
 
     def enqueue_txn(self, txn):
@@ -61,26 +65,86 @@ class Node:
             if len(peer.blockchain.blocks) > len(self.blockchain.blocks):
                 self.blockchain = peer.blockchain
 
-    def run(self):
-        print("Node is running")
+    def rpc(self, method, *args):
+        methods = {
+            "ping": lambda: "pong",
+            ## "get_balance": self.get_balance,
+            "get_txn": self.get_txn,
+            "enqueue_txn": self.enqueue_txn,
+            "add_peer": self.add_peer,
+        }
+        if method in methods:
+            return methods[method](*args)
+        else:
+            raise Exception("Method not found")
+
+    def mine(self):
+        data = f"Block at [{datetime.now()}]"
+        txns = self.mempool[: self.blockchain.block_size]
+
+        # TODO: implement a proper transaction validation mechanism
+        # for txn in txns:
+        #     public_key = Crypto.recover_public_key(txn.signature)
+        #     if not txn.verify(public_key):
+        #         print(f"Invalid txn: {txn.signature}")
+        #         txns.remove(txn)
+
+        block = self.blockchain.mine(data, txns)
+        print(f"Mined block: {block.hash}")
+
+        self.dequeue_txns(txns)
+        self.set_state()
+
+    def handle_connection(self, address):
+        listener = Listener(address)
+        print(f"Listening on {address}")
+        while True:
+            conn = listener.accept()
+            while True:
+                msg = conn.recv()
+                if msg == "disconnect":
+                    conn.close()
+                    break
+                else:
+                    try:
+                        response = self.rpc(*msg)
+                        conn.send(response)
+                    except Exception as e:
+                        conn.send(f"Error: {e}")
+
+    def handle_mining(self):
+        print("Mining...")
         while True:
             time.sleep(10)
-            if len(self.mempool) > 0:
-                data = f"Block at [{datetime.datetime.now()}]"
-                txns = self.mempool[: self.blockchain.block_size]
-                block = self.blockchain.mine(data, txns)
-                print(f"New block mined: {block}")
-                self.set_state()
-                self.dequeue_txns(txns)
-            else:
-                print("No txns to mine")
 
-    def wait_for_txn(self, signature):
-        while True:
-            txn = self.get_txn(signature)
-            if txn is not None:
-                print(f"Transaction mined: {txn.signature}")
-                break
-            else:
-                print("Waiting for transaction to be mined...")
-                time.sleep(5)
+            last_block = self.blockchain.blocks[-1]
+            if datetime.now() - last_block.timestamp > timedelta(seconds=10):
+                if len(self.mempool) == 0:
+                    print("No txns to mine")
+                else:
+                    try:
+                        block = self.mine()
+                    except Exception as e:
+                        print(f"Error: {e}")
+
+    def run(self, port):
+        mining_thread = threading.Thread(target=self.handle_mining)
+        mining_thread.start()
+
+        address = ("localhost", port)
+        connection_thread = threading.Thread(
+            target=self.handle_connection, args=(address,)
+        )
+        connection_thread.start()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--port", type=int, default=5000, help="Port number for node")
+    args = parser.parse_args()
+
+    blockchain = Blockchain()
+    blockchain.genesis()
+
+    node = Node(blockchain)
+    node.run(args.port)
